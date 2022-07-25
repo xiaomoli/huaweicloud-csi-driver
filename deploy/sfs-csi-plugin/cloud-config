@@ -1,0 +1,9 @@
+[Global]
+auth-url=https://iam.cn-north-4.huaweicloud.com/v3
+access-key=REPLACE-WITH-YOUR-AK
+secret-key=REPLACE-WITH-YOUR-SK
+region=cn-north-4
+
+[Vpc]
+#The VPC where your cluster resides
+id=8eed4fc7-e5e5-44a2-b5f2-23b3e5d46235
