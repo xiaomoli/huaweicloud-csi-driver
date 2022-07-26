@@ -33,8 +33,8 @@ type controllerServer struct {
 	Driver *SfsDriver
 }
 
-var pvcProcessSuccess = map[string]*csi.Volume{}
-var shareIDGetPvcID = map[string]string{}
+//var pvcProcessSuccess = map[string]*csi.Volume{}
+//var shareIDGetPvcID = map[string]string{}
 
 func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	klog.V(2).Infof("CreateVolume called with request %v", *req)
@@ -42,11 +42,11 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	fmt.Println("创建之前验证：", req.VolumeCapabilities, req.Name, req.GetCapacityRange().GetRequiredBytes(), req.GetCapacityRange().GetLimitBytes())
-	// check pv hasCreate or not
-	if value, ok := pvcProcessSuccess[req.Name]; ok && value != nil {
-		klog.V(2).Infof("CreateVolume: sfs Volume %s has Created Already: %v", req.Name, value)
-		return &csi.CreateVolumeResponse{Volume: value}, nil
-	}
+	//// check pv hasCreate or not
+	//if value, ok := pvcProcessSuccess[req.Name]; ok && value != nil {
+	//	klog.V(2).Infof("CreateVolume: sfs Volume %s has Created Already: %v", req.Name, value)
+	//	return &csi.CreateVolumeResponse{Volume: value}, nil
+	//}
 
 	client, err := cs.Driver.cloud.SFSV2Client()
 	if err != nil {
@@ -87,8 +87,8 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		ContentSource: req.GetVolumeContentSource(),
 		CapacityBytes: int64(sizeInGiB) * bytesInGiB,
 	}
-	shareIDGetPvcID[share.ID] = req.Name
-	pvcProcessSuccess[req.Name] = volume
+	//shareIDGetPvcID[share.ID] = req.Name
+	//pvcProcessSuccess[req.Name] = volume
 	fmt.Println("创建的磁盘：", share.ID, share.Size, share.Metadata, share.Status, volume)
 	return &csi.CreateVolumeResponse{Volume: volume}, nil
 }
@@ -111,10 +111,10 @@ func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 		klog.V(3).Infof("Failed to DeleteVolume: %v", err)
 		return nil, status.Error(codes.Internal, fmt.Sprintf("DeleteVolume failed with error %v", err))
 	}
-	//delete cache
-	pvcID := shareIDGetPvcID[volID]
-	delete(pvcProcessSuccess, pvcID)
-	delete(shareIDGetPvcID, volID)
+	////delete cache
+	//pvcID := shareIDGetPvcID[volID]
+	//delete(pvcProcessSuccess, pvcID)
+	//delete(shareIDGetPvcID, volID)
 
 	klog.V(4).Infof("Delete volume %s", volID)
 
