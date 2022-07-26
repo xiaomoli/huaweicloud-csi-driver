@@ -25,22 +25,24 @@ import (
 const (
 	waitForAvailableShareTimeout = 3
 
-	shareAvailable     = "available"
+	shareAvailable = "available"
 
 	shareDescription = "provisioned-by=sfs.csi.huaweicloud.org"
 )
 
 func createShare(client *golangsdk.ServiceClient, createOpts *shares.CreateOpts) (*shares.Share, error) {
-    createOpts.Description = shareDescription
+	createOpts.Description = shareDescription
 	share, err := shares.Create(client, createOpts).Extract()
 	if err != nil {
 		return nil, err
 	}
 
-	err = waitForShareStatus(client, share.ID, shareAvailable, waitForAvailableShareTimeout)
+	share, err = waitForShareStatus(client, share.ID, shareAvailable, waitForAvailableShareTimeout)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return share, nil
 }
 
@@ -57,12 +59,14 @@ func deleteShare(client *golangsdk.ServiceClient, shareID string) error {
 }
 
 // waitForShareStatus wait for share desired status until timeout
-func waitForShareStatus(client *golangsdk.ServiceClient, shareID string, desiredStatus string, timeout int) error {
-	return golangsdk.WaitFor(timeout, func() (bool, error) {
-		share, err := getShare(client, shareID)
+func waitForShareStatus(client *golangsdk.ServiceClient, shareID string, desiredStatus string, timeout int) (share *shares.Share, err error) {
+	return share, golangsdk.WaitFor(timeout, func() (bool, error) {
+		share, err = getShare(client, shareID)
+		//share, err := getShare(client, shareID)shareID
 		if err != nil {
 			return false, err
 		}
+
 		return share.Status == desiredStatus, nil
 	})
 }

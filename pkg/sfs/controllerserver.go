@@ -33,7 +33,8 @@ type controllerServer struct {
 	Driver *SfsDriver
 }
 
-var pvProcessSuccess = map[string]*csi.Volume{}
+var pvcProcessSuccess = map[string]*csi.Volume{}
+var shareIDGetPvcID = map[string]string{}
 
 func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	klog.V(2).Infof("CreateVolume called with request %v", *req)
@@ -42,7 +43,7 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	}
 	fmt.Println("创建之前验证：", req.VolumeCapabilities, req.Name, req.GetCapacityRange().GetRequiredBytes(), req.GetCapacityRange().GetLimitBytes())
 	// check pv hasCreate or not
-	if value, ok := pvProcessSuccess[req.Name]; ok && value != nil {
+	if value, ok := pvcProcessSuccess[req.Name]; ok && value != nil {
 		klog.V(2).Infof("CreateVolume: sfs Volume %s has Created Already: %v", req.Name, value)
 		return &csi.CreateVolumeResponse{Volume: value}, nil
 	}
@@ -86,8 +87,9 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		ContentSource: req.GetVolumeContentSource(),
 		CapacityBytes: int64(sizeInGiB) * bytesInGiB,
 	}
-	pvProcessSuccess[req.Name] = volume
-	fmt.Println("创建的磁盘：", share.ID, share.SnapshotID, share.Status, volume)
+	shareIDGetPvcID[share.ID] = req.Name
+	pvcProcessSuccess[req.Name] = volume
+	fmt.Println("创建的磁盘：", share.ID, share.Size, share.Metadata, share.Status, volume)
 	return &csi.CreateVolumeResponse{Volume: volume}, nil
 }
 
@@ -109,6 +111,10 @@ func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVol
 		klog.V(3).Infof("Failed to DeleteVolume: %v", err)
 		return nil, status.Error(codes.Internal, fmt.Sprintf("DeleteVolume failed with error %v", err))
 	}
+	//delete cache
+	pvcID := shareIDGetPvcID[volID]
+	delete(pvcProcessSuccess, pvcID)
+	delete(shareIDGetPvcID, volID)
 
 	klog.V(4).Infof("Delete volume %s", volID)
 
