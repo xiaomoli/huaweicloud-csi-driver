@@ -33,12 +33,20 @@ type controllerServer struct {
 	Driver *SfsDriver
 }
 
+var pvProcessSuccess = map[string]*csi.Volume{}
+
 func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	klog.V(2).Infof("CreateVolume called with request %v", *req)
 	if err := validateCreateVolumeRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	fmt.Println(req.GetParameters())
+	fmt.Println("创建之前验证：", req.VolumeCapabilities, req.Name, req.GetCapacityRange().GetRequiredBytes(), req.GetCapacityRange().GetLimitBytes())
+	// check pv hasCreate or not
+	if value, ok := pvProcessSuccess[req.Name]; ok && value != nil {
+		klog.V(2).Infof("CreateVolume: sfs Volume %s has Created Already: %v", req.Name, value)
+		return &csi.CreateVolumeResponse{Volume: value}, nil
+	}
+
 	client, err := cs.Driver.cloud.SFSV2Client()
 	if err != nil {
 		klog.V(3).Infof("Failed to create SFS v2 client: %v", err)
@@ -72,14 +80,15 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		klog.V(3).Infof("Failed to create access rule for share: %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	fmt.Println("创建的磁盘：", share.ID, share.SnapshotID, share.Status, req.GetVolumeContentSource())
-	return &csi.CreateVolumeResponse{
-		Volume: &csi.Volume{
-			VolumeId:      share.ID,
-			ContentSource: req.GetVolumeContentSource(),
-			CapacityBytes: int64(sizeInGiB) * bytesInGiB,
-		},
-	}, nil
+
+	volume := &csi.Volume{
+		VolumeId:      share.ID,
+		ContentSource: req.GetVolumeContentSource(),
+		CapacityBytes: int64(sizeInGiB) * bytesInGiB,
+	}
+	pvProcessSuccess[req.Name] = volume
+	fmt.Println("创建的磁盘：", share.ID, share.SnapshotID, share.Status, volume)
+	return &csi.CreateVolumeResponse{Volume: volume}, nil
 }
 
 func (cs *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
