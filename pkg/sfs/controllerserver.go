@@ -72,7 +72,7 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		klog.V(3).Infof("Failed to create access rule for share: %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
+	fmt.Println("创建的磁盘：", share.ID, share.SnapshotID, share.Status, req.GetVolumeContentSource())
 	return &csi.CreateVolumeResponse{
 		Volume: &csi.Volume{
 			VolumeId:      share.ID,
