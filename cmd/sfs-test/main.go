@@ -124,20 +124,20 @@ func main() {
 		fmt.Println(err)
 	}
 
-	//create
-	volume, err := createShare(client, &shares.CreateOpts{
-		ShareProto:  "NFS",
-		Size:        10,
-		Name:        "k8s-test1",
-		Description: "test test",
-	})
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("创建的share：%v\n", volume)
+	////create
+	//volume, err := createShare(client, &shares.CreateOpts{
+	//	ShareProto:  "NFS",
+	//	Size:        10,
+	//	Name:        "k8s-test1",
+	//	Description: "test test",
+	//})
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//fmt.Printf("创建的share：%v\n", volume)
 
 	////get
-	ID := "02b3087b-dd3f-4758-b1a0-ca3c2d4ff247"
+	ID := "9c96c76f-b0e1-49c2-81b8-b4fc63bdd790"
 	volume2, err := getShare(client, ID)
 	if err != nil {
 		fmt.Println(err)
@@ -155,15 +155,15 @@ func main() {
 	//fmt.Printf("查询到的share new：%v\n", volume3)
 	//
 	//delete
-	//err = deleteShare(client, ID)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//volume4, err := getShare(client, ID)
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//fmt.Printf("查询到的share del：%v\n", volume4)
+	err = deleteShare(client, ID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	volume4, err := getShare(client, ID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("查询到的share del：%v\n", volume4)
 }
 
 //delete
