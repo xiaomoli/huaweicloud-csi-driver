@@ -53,7 +53,7 @@ spec:
         - name: sfs
           image: liyongboat/sfs-csi-plugin:latest
           args:
-            - "--v=2"
+            - "--v=5"
             - "--logtostderr"
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--nodeid=$(NODE_ID)"

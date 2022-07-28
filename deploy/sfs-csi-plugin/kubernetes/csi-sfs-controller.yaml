@@ -30,6 +30,7 @@ spec:
             - "--csi-address=$(ADDRESS)"
             - "--enable-leader-election"
             - "--leader-election-type=leases"
+            - "--timeout=50s"
           env:
             - name: ADDRESS
               value: /csi/csi.sock
@@ -50,7 +51,7 @@ spec:
         - name: sfs-csi-plugin
           image: liyongboat/sfs-csi-plugin:latest
           args:
-            - "--v=2"
+            - "--v=5"
             - "--logtostderr"
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--nodeid=$(NODE_ID)"

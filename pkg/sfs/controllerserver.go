@@ -18,6 +18,7 @@ package sfs
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/huaweicloud/golangsdk"
@@ -38,6 +39,7 @@ type controllerServer struct {
 
 func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
 	klog.V(2).Infof("CreateVolume called with request %v", *req)
+	startTime := time.Now().Unix()
 	if err := validateCreateVolumeRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -89,7 +91,8 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	}
 	//shareIDGetPvcID[share.ID] = req.Name
 	//pvcProcessSuccess[req.Name] = volume
-	fmt.Println("创建的磁盘：", share.ID, share.Size, share.Metadata, share.Status, volume)
+	endTime := time.Now().Unix()
+	fmt.Println("创建的磁盘：", endTime-startTime, share.ID, share.Size, share.Metadata, share.Status, volume)
 	return &csi.CreateVolumeResponse{Volume: volume}, nil
 }
 
